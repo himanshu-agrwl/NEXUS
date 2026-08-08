@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NEXUS — Reliability Control Plane</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            background: #070a0f;
+            color: #e6edf5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1450px;
+            margin: auto;
+            padding: 28px;
+        }
+
+        /* ================= HEADER ================= */
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 13px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 21px;
+            font-weight: 800;
+
+            background: linear-gradient(
+                135deg,
+                #6366f1,
+                #2563eb
+            );
+
+            box-shadow:
+                0 0 30px rgba(79, 70, 229, 0.25);
+        }
+
+        .brand h1 {
+            font-size: 25px;
+            letter-spacing: -0.7px;
+        }
+
+        .subtitle {
+            color: #7c8799;
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            padding: 9px 15px;
+
+            border-radius: 20px;
+
+            background: #0c1511;
+            border: 1px solid #173521;
+
+            color: #8ee6a8;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            box-shadow:
+                0 0 12px rgba(34, 197, 94, 0.8);
+        }
+
+        /* ================= STAT CARDS ================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #0c1119;
+            border: 1px solid #192231;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .stat-label {
+            color: #78859a;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .stat-description {
+            color: #596579;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        /* ================= MAIN GRID ================= */
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 650;
+            margin-bottom: 18px;
+        }
+
+        /* ================= WORKERS ================= */
+
+        .worker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 15px 0;
+
+            border-bottom: 1px solid #18202c;
+        }
+
+        .worker:last-child {
+            border-bottom: none;
+        }
+
+        .worker-info {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .worker-status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .worker-status-dot.warning {
+            background: #f59e0b;
+        }
+
+        .worker-status-dot.danger {
+            background: #ef4444;
+        }
+
+        .worker-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .worker-meta {
+            color: #657187;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        /* ================= BADGES ================= */
+
+        .badge {
+            padding: 5px 9px;
+            border-radius: 6px;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            background: #102719;
+            color: #4ade80;
+        }
+
+        .badge.warning {
+            background: #2a210f;
+            color: #fbbf24;
+        }
+
+        .badge.danger {
+            background: #2b1418;
+            color: #f87171;
+        }
+
+        /* ================= INCIDENT ================= */
+
+        .incident-box {
+            border-left: 2px solid #ef4444;
+            padding-left: 17px;
+        }
+
+        .incident-title {
+            font-size: 14px;
+            font-weight: 650;
+        }
+
+        .incident-description {
+            color: #7a869a;
+            font-size: 12px;
+            margin-top: 5px;
+            line-height: 1.5;
+        }
+
+        .timeline {
+            margin-top: 22px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .timeline-marker {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+
+            background: #64748b;
+
+            margin-top: 4px;
+
+            flex-shrink: 0;
+        }
+
+        .timeline-marker.red {
+            background: #ef4444;
+        }
+
+        .timeline-marker.blue {
+            background: #3b82f6;
+        }
+
+        .timeline-marker.green {
+            background: #22c55e;
+        }
+
+        .timeline-event {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .timeline-detail {
+            color: #667085;
+            font-size: 10px;
+            margin-top: 3px;
+        }
+
+        /* ================= DECISION ================= */
+
+        .decision {
+            margin-top: 18px;
+            padding: 14px;
+
+            border-radius: 10px;
+
+            background: #0b1420;
+            border: 1px solid #1d3045;
+        }
+
+        .decision-label {
+            color: #6f7d91;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.7px;
+            margin-bottom: 5px;
+        }
+
+        .decision-value {
+            color: #60a5fa;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* ================= JOBS ================= */
+
+        .job-header,
+        .job-row {
+            display: grid;
+            grid-template-columns: 1.5fr 0.8fr 0.6fr;
+        }
+
+        .job-header {
+            color: #596579;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-bottom: 10px;
+        }
+
+        .job-row {
+            align-items: center;
+            padding: 13px 0;
+            border-top: 1px solid #18202c;
+        }
+
+        .job-id {
+            font-family: monospace;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .attempt {
+            color: #8995a8;
+            font-size: 11px;
+            text-align: right;
+        }
+
+        /* ================= RECOVERY MODEL ================= */
+
+        .model-item {
+            display: flex;
+            gap: 13px;
+            padding: 13px 0;
+            border-bottom: 1px solid #18202c;
+        }
+
+        .model-item:last-child {
+            border-bottom: none;
+        }
+
+        .model-number {
+            width: 25px;
+            height: 25px;
+
+            border-radius: 7px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #151d2b;
+            color: #7da9ff;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            flex-shrink: 0;
+        }
+
+        .model-title {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .model-description {
+            color: #667085;
+            font-size: 10px;
+            margin-top: 3px;
+        }
+
+        /* ================= FOOTER ================= */
+
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #3f4a5a;
+            font-size: 10px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 850px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            .container {
+                padding: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- ================= HEADER ================= -->
+
+    <header>
+
+        <div class="brand">
+
+            <div class="logo">
+                N
+            </div>
+
+            <div>
+
+                <h1>NEXUS</h1>
+
+                <div class="subtitle">
+                    Reliability Control Plane
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            <span id="systemStatus">
+                SYSTEM OPERATIONAL
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= STATISTICS ================= -->
+
+    <section class="stats">
+
+
+        <div class="card">
+
+            <div class="stat-label">
+                Total Jobs
+            </div>
+
+            <div
+                class="stat-value"
+                id="totalJobs"
+            >
+                —
+            </div>
+
+            <div class="stat-description">
+                Persisted work
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="stat-label">
+                Active Jobs
+            </div>
+
+            <div
+                class="stat-value"
+                id="activeJobs"
+            >
+                —
+            </div>
+
+            <div class="stat-description">
+                Currently processing
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="stat-label">
+                Workers
+            </div>
+
+            <div
+                class="stat-value"
+                id="workerCount"
+            >
+                —
+            </div>
+
+            <div class="stat-description">
+                Registered workers
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="stat-label">
+                Dead Letter
+            </div>
+
+            <div
+                class="stat-value"
+                id="deadJobs"
+            >
+                —
+            </div>
+
+            <div class="stat-description">
+                Exhausted retries
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= MAIN GRID ================= -->
+
+    <section class="grid">
+
+
+        <!-- WORKER HEALTH -->
+
+        <div class="card">
+
+            <div class="section-title">
+                Worker Health
+            </div>
+
+            <div id="workers">
+
+                Loading worker state...
+
+            </div>
+
+        </div>
+
+
+        <!-- INCIDENT -->
+
+        <div class="card">
+
+            <div class="section-title">
+                Recent Reliability Event
+            </div>
+
+
+            <div class="incident-box">
+
+                <div class="incident-title">
+                    Autonomous Recovery
+                </div>
+
+                <div class="incident-description">
+
+                    NEXUS detects worker failure,
+                    evaluates recovery policy,
+                    and restores execution automatically.
+
+                </div>
+
+
+                <div class="timeline">
+
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-marker red"></div>
+
+                        <div>
+
+                            <div class="timeline-event">
+                                Worker failure detected
+                            </div>
+
+                            <div class="timeline-detail">
+                                Heartbeat lease expired
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-marker blue"></div>
+
+                        <div>
+
+                            <div class="timeline-event">
+                                Recovery policy evaluated
+                            </div>
+
+                            <div class="timeline-detail">
+                                Restart budget available
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-marker blue"></div>
+
+                        <div>
+
+                            <div class="timeline-event">
+                                Worker automatically restarted
+                            </div>
+
+                            <div class="timeline-detail">
+                                New process registered with NEXUS
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-marker green"></div>
+
+                        <div>
+
+                            <div class="timeline-event">
+                                Job recovered successfully
+                            </div>
+
+                            <div class="timeline-detail">
+                                Retry completed on attempt #2
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="decision">
+
+                    <div class="decision-label">
+                        Recovery Decision
+                    </div>
+
+                    <div
+                        class="decision-value"
+                        id="decision"
+                    >
+                        AUTOMATIC RESTART
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECENT JOBS -->
+
+        <div class="card">
+
+            <div class="section-title">
+                Recent Jobs
+            </div>
+
+
+            <div class="job-header">
+
+                <div>
+                    Job
+                </div>
+
+                <div>
+                    State
+                </div>
+
+                <div style="text-align:right">
+                    Attempt
+                </div>
+
+            </div>
+
+
+            <div id="jobs">
+
+                Loading jobs...
+
+            </div>
+
+        </div>
+
+
+        <!-- RECOVERY MODEL -->
+
+        <div class="card">
+
+            <div class="section-title">
+                NEXUS Recovery Model
+            </div>
+
+
+            <div class="model-item">
+
+                <div class="model-number">
+                    01
+                </div>
+
+                <div>
+
+                    <div class="model-title">
+                        Heartbeat Monitoring
+                    </div>
+
+                    <div class="model-description">
+                        Continuously verifies worker liveness.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="model-item">
+
+                <div class="model-number">
+                    02
+                </div>
+
+                <div>
+
+                    <div class="model-title">
+                        Lease Expiration
+                    </div>
+
+                    <div class="model-description">
+                        Detects workers that stop responding.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="model-item">
+
+                <div class="model-number">
+                    03
+                </div>
+
+                <div>
+
+                    <div class="model-title">
+                        Recovery Policy
+                    </div>
+
+                    <div class="model-description">
+                        Chooses retry, restart, or quarantine.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="model-item">
+
+                <div class="model-number">
+                    04
+                </div>
+
+                <div>
+
+                    <div class="model-title">
+                        Durable Event History
+                    </div>
+
+                    <div class="model-description">
+                        Preserves evidence of every decision.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <footer>
+        NEXUS • Autonomous Reliability Control Plane
+    </footer>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   API HELPER
+===================================================== */
+
+async function fetchJSON(url) {
+
+    try {
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+        return await response.json();
+
+    } catch (error) {
+
+        console.error(
+            `Failed to fetch ${url}`,
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* =====================================================
+   JOB STATE BADGE
+===================================================== */
+
+function stateBadge(state) {
+
+    let className = "badge";
+
+    if (
+        state === "PROCESSING" ||
+        state === "QUEUED" ||
+        state === "RETRY_SCHEDULED"
+    ) {
+
+        className = "badge warning";
+    }
+
+    if (
+        state === "FAILED" ||
+        state === "DEAD_LETTER" ||
+        state === "QUARANTINED"
+    ) {
+
+        className = "badge danger";
+    }
+
+    return `
+        <span class="${className}">
+            ${state}
+        </span>
+    `;
+}
+
+
+/* =====================================================
+   LOAD JOBS
+===================================================== */
+
+async function loadJobs() {
+
+    const data = await fetchJSON("/work");
+
+    if (!data) {
+        return;
+    }
+
+    const jobs =
+        Array.isArray(data)
+            ? data
+            : data.jobs || [];
+
+
+    document.getElementById(
+        "totalJobs"
+    ).textContent = jobs.length;
+
+
+    const activeJobs =
+        jobs.filter(
+            job =>
+                job.state === "PROCESSING"
+        ).length;
+
+
+    document.getElementById(
+        "activeJobs"
+    ).textContent = activeJobs;
+
+
+    const deadJobs =
+        jobs.filter(
+            job =>
+                job.state === "DEAD_LETTER"
+        ).length;
+
+
+    document.getElementById(
+        "deadJobs"
+    ).textContent = deadJobs;
+
+
+    const container =
+        document.getElementById("jobs");
+
+
+    if (!jobs.length) {
+
+        container.innerHTML = `
+            <div class="job-row">
+                <div class="job-id">
+                    No jobs
+                </div>
+
+                <div>
+                    —
+                </div>
+
+                <div class="attempt">
+                    —
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        jobs
+            .slice()
+            .reverse()
+            .slice(0, 7)
+            .map(job => `
+
+                <div class="job-row">
+
+                    <div class="job-id">
+                        ${String(job.id).slice(0, 12)}
+                    </div>
+
+                    <div>
+                        ${stateBadge(job.state)}
+                    </div>
+
+                    <div class="attempt">
+                        #${job.attempt_count ?? 0}
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
+}
+
+
+/* =====================================================
+   LOAD WORKERS
+===================================================== */
+
+async function loadWorkers() {
+
+    const data =
+        await fetchJSON("/workers");
+
+    const container =
+        document.getElementById("workers");
+
+
+    if (
+        data &&
+        Array.isArray(data)
+    ) {
+
+        document.getElementById(
+            "workerCount"
+        ).textContent = data.length;
+
+
+        container.innerHTML =
+            data.map(worker => {
+
+                let dotClass = "";
+                let badgeClass = "badge";
+
+
+                if (
+                    worker.state ===
+                    "QUARANTINED"
+                ) {
+
+                    dotClass = "danger";
+                    badgeClass =
+                        "badge danger";
+
+                } else if (
+                    worker.state !==
+                    "RUNNING"
+                ) {
+
+                    dotClass = "warning";
+                    badgeClass =
+                        "badge warning";
+                }
+
+
+                return `
+
+                    <div class="worker">
+
+                        <div class="worker-info">
+
+                            <div
+                                class="worker-status-dot
+                                ${dotClass}"
+                            ></div>
+
+                            <div>
+
+                                <div class="worker-name">
+                                    ${worker.id}
+                                </div>
+
+                                <div class="worker-meta">
+                                    Restart budget:
+                                    ${worker.restart_count ?? 0}/3
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <span class="${badgeClass}">
+                            ${worker.state}
+                        </span>
+
+                    </div>
+                `;
+
+            }).join("");
+
+        return;
+    }
+
+
+    /*
+        Fallback if /workers
+        isn't available yet.
+    */
+
+    document.getElementById(
+        "workerCount"
+    ).textContent = "1";
+
+
+    container.innerHTML = `
+
+        <div class="worker">
+
+            <div class="worker-info">
+
+                <div class="worker-status-dot"></div>
+
+                <div>
+
+                    <div class="worker-name">
+                        worker-1
+                    </div>
+
+                    <div class="worker-meta">
+                        Heartbeat monitored
+                    </div>
+
+                </div>
+
+            </div>
+
+            <span class="badge">
+                ACTIVE
+            </span>
+
+        </div>
+    `;
+}
+
+
+/* =====================================================
+   SYSTEM STATUS
+===================================================== */
+
+async function updateSystemStatus() {
+
+    const workers =
+        await fetchJSON("/workers");
+
+    const status =
+        document.getElementById(
+            "systemStatus"
+        );
+
+
+    if (
+        workers &&
+        Array.isArray(workers)
+    ) {
+
+        const quarantined =
+            workers.some(
+                worker =>
+                    worker.state ===
+                    "QUARANTINED"
+            );
+
+
+        if (quarantined) {
+
+            status.textContent =
+                "ATTENTION REQUIRED";
+
+        } else {
+
+            status.textContent =
+                "SYSTEM OPERATIONAL";
+        }
+    }
+}
+
+
+/* =====================================================
+   DASHBOARD REFRESH
+===================================================== */
+
+async function refreshDashboard() {
+
+    await loadJobs();
+
+    await loadWorkers();
+
+    await updateSystemStatus();
+}
+
+
+refreshDashboard();
+
+
+/*
+    Live refresh every 3 seconds.
+*/
+
+setInterval(
+    refreshDashboard,
+    3000
+);
+
+</script>
+
+</body>
+</html>
